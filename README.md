@@ -30,3 +30,4 @@ Each house now has a raised front thinnai/veranda. A thrown bomb landing on one 
 ## Notes
 
 The game is a fictional, non-operational simulation. Firework effects are visual/audio game effects only. The current world layout is a first procedural pass; exact dimensions and house/vegetation distributions remain tunable.
+"# santhu" 
