@@ -1510,7 +1510,7 @@ import { Tutorial } from "./ui/Tutorial.js";
 
     function makeCrackerRecord(id, target) {
       return {
-        id, model: makeCrackerModel(id),
+        id, uid, soundKey, model: makeCrackerModel(id),
         x: target.x, y: target.y, z: target.z,
         vx: 0, vy: 0, vz: 0, age: 0, landed: true,
         fuse: 0, fuseDuration: 0, fuseKey: null, ignitedAt: 0,
@@ -1790,7 +1790,7 @@ import { Tutorial } from "./ui/Tutorial.js";
             c.photoKey = "photo-" + performance.now();
             Sound.startHiss(c.photoKey, .025);
           } else if (c.id === "flower" || c.id === "chakkar") {
-            Sound.startHiss(c.id + "-" + performance.now(), .045);
+          
           }
         }
 
@@ -1909,9 +1909,9 @@ import { Tutorial } from "./ui/Tutorial.js";
                 Math.cos(a) * speed, .12 + Math.random() * .4, Math.sin(a) * speed,
                 palette[(Math.random() * palette.length) | 0], .22 + Math.random() * .5, .08);
             }
-            Sound.startHiss("chakkar-" + c.x + "-" + c.z, .035);
+            Sound.startHiss(c.soundKey, .035);
           } else {
-            Sound.stopHiss("chakkar-" + c.x + "-" + c.z);
+            Sound.stopHiss(c.soundKey);
             setCharred(c.model);
             scheduleResidue(c.model);
             c.model = null;
