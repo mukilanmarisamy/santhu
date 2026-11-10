@@ -49,3 +49,14 @@ canvas { touch-action: none; }
 .tutorial-btn.primary:hover { background: #fbbf24; }
 .tutorial-btn.ghost { border-color: transparent; background: transparent; color: #94a3b8; }
 @media (max-width: 480px) { .tutorial-rows li { grid-template-columns: 1fr; gap: 3px; } }
+
+#menu button { min-width: 76px; }
+@media (min-width: 640px) { #menu button { min-width: unset; } }
+
+#menu-drawer {
+  transition: all 0.2s ease-in-out;
+}
+#toggle-menu-btn {
+  user-select: none;
+  -webkit-user-select: none;
+}

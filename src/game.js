@@ -871,26 +871,46 @@ import { Tutorial } from "./ui/Tutorial.js";
     for (const item of items) {
       const button = document.createElement("button");
       button.dataset.id = item.id;
-      button.className = "rounded-xl border border-white/10 bg-white/[.04] px-2 py-2 text-left transition hover:bg-white/10";
-      button.innerHTML = `<span class="flex items-center justify-between gap-1"><b class="text-[10px] leading-tight sm:text-xs">${item.name}</b><span class="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-amber-200">${item.key}</span></span><span class="mt-1 block text-[9px] leading-tight text-slate-400 sm:text-[10px]">${item.hint}</span>`;
+      button.className = "rounded-lg border border-white/10 bg-white/[.04] px-2 py-1 text-left transition hover:bg-white/10 shrink-0 sm:rounded-xl sm:px-2.5 sm:py-2";
+      button.innerHTML = `<span class="flex items-center justify-between gap-1"><b class="text-[9px] leading-tight sm:text-xs">${item.name}</b><span class="rounded bg-white/10 px-1 py-0.5 text-[8px] text-amber-200 sm:text-[10px]">${item.key}</span></span><span class="mt-0.5 hidden text-[9px] leading-tight text-slate-400 sm:block sm:text-[10px]">${item.hint}</span>`;
       button.addEventListener("click", e => {
         e.stopPropagation();
         selectItem(item.id);
+        const menuDrawer = document.querySelector("#menu-drawer");
+        const menuArrow = document.querySelector("#menu-arrow-icon");
+        if (window.innerWidth < 768 && menuDrawer) {
+          menuDrawer.classList.add("hidden");
+          if (menuArrow) menuArrow.textContent = "▲";
+        }
       });
       menu.appendChild(button);
     }
 
     function selectItem(id) {
       selected = id;
+      const item = items.find(v => v.id === id);
       for (const b of menu.children) {
         const on = b.dataset.id === id;
         b.classList.toggle("border-amber-300/70", on);
         b.classList.toggle("bg-amber-400/10", on);
         b.classList.toggle("border-white/10", !on);
       }
-      statusEl.textContent = `${items.find(v => v.id === id).name} selected — aim and click to use.`;
+      const labelEl = document.querySelector("#selected-cracker-label");
+      if (labelEl && item) labelEl.textContent = item.name;
+      statusEl.textContent = `${item?.name || id} selected — aim and use.`;
     }
     selectItem(selected);
+    const toggleMenuBtn = document.querySelector("#toggle-menu-btn");
+    const menuDrawer = document.querySelector("#menu-drawer");
+    const menuArrow = document.querySelector("#menu-arrow-icon");
+
+    toggleMenuBtn?.addEventListener("click", e => {
+      e.stopPropagation();
+      if (!menuDrawer) return;
+      const isHidden = menuDrawer.classList.toggle("hidden");
+      if (menuArrow) menuArrow.textContent = isHidden ? "▲" : "▼";
+    });
+
 
     const burnMarks = [];
     function makeBurnMark(x, z) {
@@ -2145,7 +2165,7 @@ import { Tutorial } from "./ui/Tutorial.js";
             const dx = touch.clientX - joyCenter.x;
             const dy = touch.clientY - joyCenter.y;
             const dist = Math.hypot(dx, dy);
-            const maxRadius = 45;
+            const maxRadius = 32;
             const angle = Math.atan2(dy, dx);
             const clampedDist = Math.min(dist, maxRadius);
             const knobX = Math.cos(angle) * clampedDist;
@@ -2219,12 +2239,12 @@ import { Tutorial } from "./ui/Tutorial.js";
 
     btnFire?.addEventListener("touchstart", e => {
       e.preventDefault();
-      throwController.handleDown({ button: 0, isTouch: true, preventDefault: () => {} });
+      throwController.handleDown({ button: 0, isVirtualButton: true, preventDefault: () => {} });
     }, { passive: false });
 
     btnFire?.addEventListener("touchend", e => {
       e.preventDefault();
-      throwController.handleUp({ button: 0, isTouch: true, preventDefault: () => {} });
+      throwController.handleUp({ button: 0, isVirtualButton: true, preventDefault: () => {} });
     }, { passive: false });
     btnFire?.addEventListener("touchcancel", e => {
       e.preventDefault();

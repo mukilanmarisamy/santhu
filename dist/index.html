@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Santhu — Deepavali Simulator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
@@ -23,8 +23,8 @@
     }
   }
   </script>
-  <script type="module" crossorigin src="./assets/index-BS8p0Bcs.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BvKKww4J.css">
+  <script type="module" crossorigin src="./assets/index-D_fD9Mso.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CXR7b9WO.css">
 </head>
 <body class="select-none text-white">
   <div id="error-banner" class="hidden fixed top-2 left-1/2 -translate-x-1/2 z-50 bg-red-600/95 text-white text-xs font-mono px-4 py-2 rounded-lg shadow-2xl border border-red-300"></div>
@@ -52,26 +52,23 @@
 
   <div id="hud" class="fixed inset-0 z-20 flex flex-col justify-between p-3 sm:p-5">
     <header class="flex items-start justify-between gap-2">
-      <div class="glass w-56 rounded-xl border border-white/10 px-4 py-3 shadow-xl sm:w-64">
-        <div class="flex items-center justify-between gap-2">
-          <div class="text-xs font-bold uppercase tracking-[.16em] text-emerald-300">HEALTH: <span id="health-label">100%</span></div>
-          <div class="text-[10px] text-slate-400">HOME · MADURAI</div>
+      <div class="glass w-36 rounded-xl border border-white/10 px-2.5 py-1.5 shadow-xl sm:w-64 sm:px-4 sm:py-3">
+        <div class="flex items-center justify-between gap-1">
+          <div class="text-[10px] font-bold uppercase tracking-[.14em] text-emerald-300 sm:text-xs">HEALTH: <span id="health-label">100%</span></div>
+          <div class="text-[9px] text-slate-400 sm:text-[10px]">MADURAI</div>
         </div>
-        <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-700">
+        <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-700 sm:mt-2 sm:h-2">
           <div id="health-fill" class="h-full w-full rounded-full bg-emerald-400 transition-[width] duration-150"></div>
         </div>
-        <div class="mt-2 text-[10px] text-slate-300 sm:text-xs">WASD move · Space jump · Mouse look · 1–9 select · Left click to use/throw (hold to charge power) · H help</div>
+        <div class="mt-1 hidden text-[10px] text-slate-300 md:block">Left click to use/throw (hold to charge power)</div>
       </div>
-      <div class="flex items-start gap-2">
-        <div id="chase-panel" class="glass hidden min-w-40 rounded-xl border border-amber-300/30 px-3 py-2 shadow-xl">
-          <div class="flex items-center justify-between gap-3 text-[10px] font-black tracking-wider text-amber-200"><span>NEIGHBOUR CHASING</span><span id="chase-time">18.0s</span></div>
-          <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-700"><div id="chase-fill" class="h-full w-full rounded-full bg-amber-400"></div></div>
-          <div class="mt-1 text-[9px] text-slate-300">Escape until the timer runs out!</div>
+      <div class="flex items-start gap-1.5 sm:gap-2">
+        <div id="chase-panel" class="glass hidden min-w-32 rounded-xl border border-amber-300/30 px-2.5 py-1.5 shadow-xl sm:min-w-40 sm:px-3 sm:py-2">
+          <div class="flex items-center justify-between gap-2 text-[9px] font-black tracking-wider text-amber-200 sm:text-[10px]"><span>CHASE</span><span id="chase-time">18.0s</span></div>
+          <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-700 sm:mt-2 sm:h-2"><div id="chase-fill" class="h-full w-full rounded-full bg-amber-400"></div></div>
         </div>
-        <button id="help-toggle" class="rounded-xl border border-white/15 bg-slate-950/80 px-4 py-3 text-xs font-bold shadow-lg transition hover:bg-slate-800 sm:text-sm">❓ How to play</button>
-        <button id="mode-toggle" class="rounded-xl border border-white/15 bg-slate-950/80 px-4 py-3 text-xs font-bold shadow-lg transition hover:bg-slate-800 sm:text-sm">
-          ☀️ Day Mode
-        </button>
+        <button id="help-toggle" class="rounded-xl border border-white/15 bg-slate-950/80 px-2.5 py-1.5 text-[11px] font-bold shadow-lg transition hover:bg-slate-800 sm:px-4 sm:py-3 sm:text-sm">❓ Help</button>
+        <button id="mode-toggle" class="rounded-xl border border-white/15 bg-slate-950/80 px-2.5 py-1.5 text-[11px] font-bold shadow-lg transition hover:bg-slate-800 sm:px-4 sm:py-3 sm:text-sm">☀️ Day</button>
       </div>
     </header>
 
@@ -86,22 +83,55 @@
       <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-700"><div id="throw-fill" class="h-full w-0 rounded-full bg-amber-400"></div></div>
       <div id="throw-hint" class="mt-1 text-[9px] text-slate-300">Hold Left Click to light the fuse and charge throw. Release to throw.</div>
     </div>
-    <footer class="mx-auto w-full max-w-6xl">
-      <div class="glass mb-2 flex items-center justify-between gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs">
-        <span id="status" class="truncate text-slate-200">Click to begin. Press H for the tutorial.</span>
-        <label class="flex shrink-0 items-center gap-2 text-slate-300">
+    <footer class="mx-auto w-full max-w-6xl pointer-events-auto">
+      <!-- Cracker Selection Drawer (Toggled by the button below) -->
+      <div id="menu-drawer" class="hidden mb-1.5 md:block">
+        <div id="menu" class="glass flex gap-1.5 overflow-x-auto rounded-xl border border-white/10 p-1.5 md:grid md:grid-cols-5 lg:grid-cols-9"></div>
+      </div>
+
+      <!-- Compact Bottom Bar -->
+      <div class="glass flex items-center justify-between gap-2 rounded-xl border border-white/10 px-2.5 py-1.5 text-xs">
+        <!-- Toggle button to show/hide cracker menu -->
+        <button id="toggle-menu-btn" type="button" class="flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-400/40 bg-amber-500/20 px-2.5 py-1 text-[11px] font-bold text-amber-200 shadow transition hover:bg-amber-500/30 active:scale-95">
+          <span>🧨</span>
+          <span id="selected-cracker-label">Lakshmi Bomb</span>
+          <span id="menu-arrow-icon" class="text-[9px]">▲</span>
+        </button>
+
+        <span id="status" class="truncate text-[11px] text-slate-300">Aim and use.</span>
+
+        <label class="flex shrink-0 items-center gap-1.5 text-[11px] text-slate-300">
           <span class="hidden sm:inline">Smoke</span>
-          <select id="smoke-color" class="rounded-md border border-white/10 bg-slate-900 px-2 py-1 text-white outline-none">
+          <select id="smoke-color" class="rounded border border-white/10 bg-slate-900 px-1.5 py-0.5 text-white outline-none">
             <option value="red">Red</option>
             <option value="green">Green</option>
             <option value="blue">Blue</option>
           </select>
         </label>
       </div>
-      <div id="menu" class="glass grid grid-cols-3 gap-2 rounded-2xl border border-white/10 p-2 sm:grid-cols-5 lg:grid-cols-9"></div>
     </footer>
   </div>
 
   
+  
+  <!-- Mobile Touch Overlay -->
+  <div id="mobile-controls" class="pointer-events-none fixed inset-0 z-30 select-none touch-none hidden">
+    <!-- Virtual Joystick (Bottom Left) -->
+    <div id="joystick-zone" class="pointer-events-auto absolute bottom-3 left-3 h-24 w-24 rounded-full border border-white/20 bg-slate-950/30 backdrop-blur-sm sm:bottom-6 sm:left-6 sm:h-28 sm:w-28">
+      <div id="joystick-knob" class="absolute left-1/2 top-1/2 h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-amber-300/80 bg-amber-400/60 shadow-md"></div>
+    </div>
+
+    <!-- Mobile Action Buttons (Bottom Right) -->
+    <div class="pointer-events-auto absolute bottom-3 right-3 flex flex-col items-end gap-2 sm:bottom-6 sm:right-6 sm:gap-2.5">
+      <div class="flex items-center gap-1.5">
+        <button id="btn-stairs" type="button" class="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/85 text-sm shadow-md active:scale-90 active:bg-amber-500 active:text-slate-950" title="Stairs">🪜</button>
+        <button id="btn-jump" type="button" class="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-slate-900/85 text-[9px] font-black tracking-wider text-white shadow-md active:scale-90 active:bg-amber-500 active:text-slate-950">JUMP</button>
+      </div>
+      <button id="btn-fire" type="button" class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-amber-300 bg-amber-500/85 text-[10px] font-black uppercase tracking-wider text-slate-950 shadow-xl active:scale-95 active:bg-amber-400">
+        💥 THROW
+      </button>
+    </div>
+  </div>
+
 </body>
 </html>

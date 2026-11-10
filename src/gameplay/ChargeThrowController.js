@@ -26,11 +26,13 @@ export class ChargeThrowController {
   }
 
   handleDown(event) {
+    // IMPORTANT: Ignore direct touch events on canvas so steering does NOT drop bombs!
+    // Only physical mouse clicks (pointerType === "mouse") or explicit virtual action buttons can trigger.
+    if (event.pointerType === "touch" && !event.isVirtualButton) return;
     if ((event.button !== 0 && event.button !== 2 && event.button !== undefined) || this.active) return;
     event.preventDefault?.();
 
-    const isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0) || event.isTouch;
-    if (!isTouch && document.pointerLockElement !== this.element) {
+    if (!event.isVirtualButton && document.pointerLockElement !== this.element) {
       this.element.requestPointerLock?.();
       return;
     }
@@ -52,6 +54,7 @@ export class ChargeThrowController {
   }
 
   handleUp(event) {
+    if (event.pointerType === "touch" && !event.isVirtualButton) return;
     if (this.activeButton === null || (event.button !== undefined && event.button !== this.activeButton) || !this.active) return;
     event.preventDefault?.();
     const charge = this.charge;
