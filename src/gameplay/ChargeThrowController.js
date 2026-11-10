@@ -1,7 +1,4 @@
-// Mouse button controller (Primary: Left Mouse Button [0], Secondary: Right Mouse Button [2]).
-//  - Throwables: pressing LMB (or RMB) lights the fuse and starts a charge timer (chargePower += dt every frame).
-//    Power is linear and capped at maxHoldSec (1.5 s). Releasing fires onRelease({ charge }) with charge in 0..1.
-//  - Anything canCharge() rejects (ground-placed items) fires onInstant() on press and never charges.
+// Mouse & Touch button controller (Primary: Left Mouse Button [0], Secondary: Right Mouse Button [2], plus Mobile Touch).
 export class ChargeThrowController {
   constructor(element, { canCharge, onInstant, onIgnite, onRelease, onCancel, onProgress, maxHoldSec = 1.5 }) {
     this.element = element;
@@ -29,10 +26,11 @@ export class ChargeThrowController {
   }
 
   handleDown(event) {
-    // Respond to Left Mouse Button (0) and Right Mouse Button (2)
-    if ((event.button !== 0 && event.button !== 2) || this.active) return;
-    event.preventDefault();
-    if (document.pointerLockElement !== this.element) {
+    if ((event.button !== 0 && event.button !== 2 && event.button !== undefined) || this.active) return;
+    event.preventDefault?.();
+
+    const isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0) || event.isTouch;
+    if (!isTouch && document.pointerLockElement !== this.element) {
       this.element.requestPointerLock?.();
       return;
     }
@@ -41,13 +39,12 @@ export class ChargeThrowController {
       return;
     }
     this.active = true;
-    this.activeButton = event.button;
+    this.activeButton = event.button ?? 0;
     this.chargePower = 0;
     this.onIgnite?.();
     this.onProgress?.({ visible: true, charge: 0 });
   }
 
-  // Called once per animation frame with the frame delta in seconds.
   update(dt) {
     if (!this.active) return;
     this.chargePower = Math.min(this.maxHoldSec, this.chargePower + dt);
@@ -55,8 +52,8 @@ export class ChargeThrowController {
   }
 
   handleUp(event) {
-    if (this.activeButton === null || event.button !== this.activeButton || !this.active) return;
-    event.preventDefault();
+    if (this.activeButton === null || (event.button !== undefined && event.button !== this.activeButton) || !this.active) return;
+    event.preventDefault?.();
     const charge = this.charge;
     this.active = false;
     this.activeButton = null;

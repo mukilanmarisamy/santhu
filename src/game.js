@@ -1468,7 +1468,7 @@ import { Tutorial } from "./ui/Tutorial.js";
         c.activated = true;        // emitter keeps running for 12 s, in the air or on the ground
         c.emitterElapsed = 0;
         c.age = 0;
-        Sound.startHiss("smoke-" + performance.now(), .025);
+        Sound.startHiss(c.soundKey, .025);
         damageAt(c.x, c.y, c.z, 6, 2.5);
       }
     }
@@ -1509,8 +1509,9 @@ import { Tutorial } from "./ui/Tutorial.js";
     }
 
     function makeCrackerRecord(id, target) {
+      const uid = `${id}-${performance.now().toFixed(1)}-${Math.random().toString(36).slice(2, 6)}`;
       return {
-        id, uid, soundKey, model: makeCrackerModel(id),
+        id, uid, soundKey: `snd-${uid}`, model: makeCrackerModel(id),
         x: target.x, y: target.y, z: target.z,
         vx: 0, vy: 0, vz: 0, age: 0, landed: true,
         fuse: 0, fuseDuration: 0, fuseKey: null, ignitedAt: 0,
@@ -1554,7 +1555,7 @@ import { Tutorial } from "./ui/Tutorial.js";
       rec.model.position.set(target.x, target.y, target.z);
       scene.add(rec.model);
       rec.placedFuse = PLACED_FUSE;
-      rec.fuseKey = `placed-${id}-${performance.now()}`;
+      rec.fuseKey = `fuse-${rec.uid}`;
       Sound.startHiss(rec.fuseKey, .02);
       if (id === "wala") {
         rec.path = makeWalaPath(target, player.yaw);
@@ -1787,10 +1788,7 @@ import { Tutorial } from "./ui/Tutorial.js";
           if (c.id === "multi") { c.activated = true; c.nextRocket = .2; }
           else if (c.id === "photo") {
             c.activated = true;
-            c.photoKey = "photo-" + performance.now();
-            Sound.startHiss(c.photoKey, .025);
-          } else if (c.id === "flower" || c.id === "chakkar") {
-          
+            Sound.startHiss(c.soundKey, .025);
           }
         }
 
@@ -1827,6 +1825,7 @@ import { Tutorial } from "./ui/Tutorial.js";
         if (c.id === "smoke" && c.activated) {
           c.emitterElapsed += dt;
           if (c.emitterElapsed >= 12) {
+            Sound.stopHiss(c.soundKey);
             if (c.model) { setCharred(c.model); scheduleResidue(c.model); c.model = null; }
             explosives.splice(i, 1);
             continue;
@@ -1868,9 +1867,9 @@ import { Tutorial } from "./ui/Tutorial.js";
             c.chainStep++;
           }
           if (c.age < 7.25) {
-            Sound.startHiss("wala-" + c.x + "-" + c.z, .018);
+            Sound.startHiss(c.soundKey, .018);
           } else {
-            Sound.stopHiss("wala-" + c.x + "-" + c.z);
+            Sound.stopHiss(c.soundKey);
             removeObject(c.path.group);
             explosives.splice(i, 1);
             continue;
@@ -1886,9 +1885,9 @@ import { Tutorial } from "./ui/Tutorial.js";
                 Math.cos(a) * horizontal, 3.6 + Math.random() * 1.7, Math.sin(a) * horizontal,
                 palette[(Math.random() * palette.length) | 0], .7 + Math.random() * 1.4, .07 + Math.random() * .05);
             }
-            Sound.startHiss("flower-" + c.x + "-" + c.z, .045);
+            Sound.startHiss(c.soundKey, .045);
           } else {
-            Sound.stopHiss("flower-" + c.x + "-" + c.z);
+            Sound.stopHiss(c.soundKey);
             setCharred(c.model);
             scheduleResidue(c.model);
             c.model = null;
@@ -1942,7 +1941,7 @@ import { Tutorial } from "./ui/Tutorial.js";
             Sound.noisePop(.12, .08, 5000);
           }
           if (c.age >= 4) {
-            if (c.photoKey) Sound.stopHiss(c.photoKey);
+            Sound.stopHiss(c.soundKey);
             setCharred(c.model);
             scheduleResidue(c.model);
             c.model = null;
@@ -2110,7 +2109,129 @@ import { Tutorial } from "./ui/Tutorial.js";
       }
     }
 
-    function animate() {
+    
+    // --- Mobile Touch Controls Support ---
+    const isTouchDevice = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+    const mobileControls = document.querySelector("#mobile-controls");
+    const joystickZone = document.querySelector("#joystick-zone");
+    const joystickKnob = document.querySelector("#joystick-knob");
+    const btnFire = document.querySelector("#btn-fire");
+    const btnJump = document.querySelector("#btn-jump");
+    const btnStairs = document.querySelector("#btn-stairs");
+
+    let joyTouchId = null;
+    let joyCenter = { x: 0, y: 0 };
+    let joyDelta = { x: 0, y: 0 };
+
+    if (isTouchDevice && mobileControls) {
+      mobileControls.classList.remove("hidden");
+      statusEl.textContent = "Touch joystick to move · Swipe to look · Tap or hold THROW!";
+    }
+
+    // Virtual Joystick for walking
+    if (joystickZone && joystickKnob) {
+      joystickZone.addEventListener("touchstart", e => {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        joyTouchId = touch.identifier;
+        const rect = joystickZone.getBoundingClientRect();
+        joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      }, { passive: false });
+
+      window.addEventListener("touchmove", e => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (touch.identifier === joyTouchId) {
+            const dx = touch.clientX - joyCenter.x;
+            const dy = touch.clientY - joyCenter.y;
+            const dist = Math.hypot(dx, dy);
+            const maxRadius = 45;
+            const angle = Math.atan2(dy, dx);
+            const clampedDist = Math.min(dist, maxRadius);
+            const knobX = Math.cos(angle) * clampedDist;
+            const knobY = Math.sin(angle) * clampedDist;
+            joystickKnob.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+            joyDelta.x = knobX / maxRadius;
+            joyDelta.y = knobY / maxRadius;
+          }
+        }
+      }, { passive: false });
+
+      const resetJoy = () => {
+        joyTouchId = null;
+        joyDelta.x = 0;
+        joyDelta.y = 0;
+        joystickKnob.style.transform = "translate(-50%, -50%)";
+      };
+      window.addEventListener("touchend", e => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joyTouchId) resetJoy();
+        }
+      });
+      window.addEventListener("touchcancel", resetJoy);
+    }
+
+    // Touch Look (swipe anywhere on screen outside buttons to rotate camera)
+    let lookTouchId = null;
+    let lastLookX = 0, lastLookY = 0;
+
+    window.addEventListener("touchstart", e => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === joyTouchId) continue;
+        const target = touch.target;
+        if (target.closest?.("#mobile-controls") || target.closest?.("#menu") || target.closest?.("button") || target.closest?.("select")) continue;
+        if (lookTouchId === null) {
+          lookTouchId = touch.identifier;
+          lastLookX = touch.clientX;
+          lastLookY = touch.clientY;
+        }
+      }
+    }, { passive: true });
+
+    window.addEventListener("touchmove", e => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === lookTouchId) {
+          const dx = touch.clientX - lastLookX;
+          const dy = touch.clientY - lastLookY;
+          lastLookX = touch.clientX;
+          lastLookY = touch.clientY;
+          if (player.state === "alive" && player.freeze <= 0) {
+            player.yaw -= dx * 0.0045;
+            player.pitch = THREE.MathUtils.clamp(player.pitch - dy * 0.0045, -1.48, 1.48);
+          }
+        }
+      }
+    }, { passive: true });
+
+    const endLook = e => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === lookTouchId) lookTouchId = null;
+      }
+    };
+    window.addEventListener("touchend", endLook);
+    window.addEventListener("touchcancel", endLook);
+
+    // Mobile Action buttons
+    btnJump?.addEventListener("touchstart", e => { e.preventDefault(); tryJump(); }, { passive: false });
+    btnStairs?.addEventListener("touchstart", e => { e.preventDefault(); useStairs(); }, { passive: false });
+
+    btnFire?.addEventListener("touchstart", e => {
+      e.preventDefault();
+      throwController.handleDown({ button: 0, isTouch: true, preventDefault: () => {} });
+    }, { passive: false });
+
+    btnFire?.addEventListener("touchend", e => {
+      e.preventDefault();
+      throwController.handleUp({ button: 0, isTouch: true, preventDefault: () => {} });
+    }, { passive: false });
+    btnFire?.addEventListener("touchcancel", e => {
+      e.preventDefault();
+      throwController.handleCancel();
+    }, { passive: false });
+
+function animate() {
       requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), .033);
       elapsed += dt;
@@ -2137,6 +2258,10 @@ import { Tutorial } from "./ui/Tutorial.js";
           if (keys.has("s")) { dx -= forward.x; dz -= forward.z; }
           if (keys.has("d")) { dx += right.x; dz += right.z; }
           if (keys.has("a")) { dx -= right.x; dz -= right.z; }
+          if (joyDelta.x !== 0 || joyDelta.y !== 0) {
+            dx += forward.x * (-joyDelta.y) + right.x * joyDelta.x;
+            dz += forward.z * (-joyDelta.y) + right.z * joyDelta.x;
+          }
           const len = Math.hypot(dx, dz);
           if (len) movePlayer(dx / len * player.speed * dt, dz / len * player.speed * dt);
         }
